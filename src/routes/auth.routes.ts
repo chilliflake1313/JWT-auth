@@ -1,25 +1,47 @@
 import express from "express";
-import { register, login, refresh, logout } from "../services/auth.service";
+import { register, verifyEmail, login, refresh, logout } from "../services/auth.service";
 import { protect } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
-router.post("/signup", async (req, res) => {
-  const { email, password } = req.body;
-  const data = await register(email, password);
-  res.json(data);
+router.post("/signup", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const data = await register(email, password);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const data = await login(email, password);
-  res.json(data);
+router.post("/verify-email", (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const data = verifyEmail(email, otp);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/refresh", (req, res) => {
-  const { refreshToken } = req.body;
-  const data = refresh(refreshToken);
-  res.json(data);
+router.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const data = await login(email, password);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/refresh", (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+    const data = refresh(refreshToken);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post("/logout", protect, (req: any, res) => {

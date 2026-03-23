@@ -4,16 +4,37 @@ import { generateAccessToken, generateRefreshToken } from "./token.service";
 
 const users = new Map<string, any>();
 const refreshStore = new Map<string, string>();
+const pendingSignups = new Map<string, { password: string; otp: string }>();
+
+const createOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 export const register = async (email: string, password: string) => {
+  if (users.has(email)) {
+    throw new Error("Email already exists");
+  }
+
   const hashed = await bcrypt.hash(password, 10);
+  const otp = createOtp();
+
+  pendingSignups.set(email, { password: hashed, otp });
+
+  // Demo-only OTP response so local testing is easy.
+  return { message: "OTP sent", otp };
+};
+
+export const verifyEmail = (email: string, otp: string) => {
+  const pending = pendingSignups.get(email);
+  if (!pending || pending.otp !== otp) {
+    throw new Error("Invalid OTP");
+  }
 
   const user = {
     id: Date.now().toString(),
     email,
-    password: hashed,
+    password: pending.password,
   };
 
+  pendingSignups.delete(email);
   users.set(email, user);
 
   const accessToken = generateAccessToken(user.id);
