@@ -75,7 +75,6 @@ email -> OTP -> verify -> password updated
 |   |   `-- token.service.ts
 |   |-- app.ts
 |   `-- server.ts
-|-- .env.example
 |-- package.json
 |-- tsconfig.json
 `-- README.md
