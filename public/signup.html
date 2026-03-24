@@ -125,7 +125,7 @@
         const data = await res.json();
 
         if (res.ok) {
-          msg.textContent = "OTP sent. Demo OTP: " + (data.otp || "check server");
+          msg.textContent = "OTP sent to your email. " + (data.otp ? "Test OTP: " + data.otp : "Check your inbox or Mailtrap.");
           signupForm.style.display = "none";
           otpSection.style.display = "block";
         } else {

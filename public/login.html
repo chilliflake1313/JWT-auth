@@ -43,6 +43,11 @@
       font-size: 1.4rem;
     }
 
+    h3 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+    }
+
     .hint {
       color: var(--muted);
       margin: 0 0 18px;
@@ -67,12 +72,28 @@
       font-weight: 600;
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
       cursor: pointer;
+      margin-bottom: 8px;
     }
 
-    #msg {
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .secondary-btn {
+      background: #e2e8f0;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .secondary-btn:hover {
+      background: #cbd5e1;
+    }
+
+    #msg, #loginMsg, #forgotMsg, #resetMsg {
       margin-top: 12px;
       min-height: 20px;
       color: var(--muted);
+      font-size: 0.9rem;
     }
 
     .link {
@@ -81,37 +102,88 @@
       font-size: 0.92rem;
     }
 
+    .forgot-link {
+      display: block;
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
     a {
       color: var(--accent);
       text-decoration: none;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>Login</h2>
-    <p class="hint">Use your email and password to get JWT tokens.</p>
+    <!-- Login Form -->
+    <div id="loginSection">
+      <h2>Login</h2>
+      <p class="hint">Enter your credentials to access your account.</p>
 
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required />
+        <input type="password" id="loginPassword" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
 
-    <p id="msg"></p>
-    <p class="link">No account yet? <a href="/signup.html">Signup</a></p>
+      <p id="loginMsg"></p>
+
+      <div class="forgot-link">
+        <a onclick="showForgotPassword()">Forgot password?</a>
+      </div>
+
+      <div class="link">No account yet? <a href="/signup.html">Signup</a></div>
+    </div>
+
+    <!-- Forgot Password Form -->
+    <div id="forgotSection" class="hidden">
+      <h3>Reset Password</h3>
+      <p class="hint">Enter your email to receive an OTP.</p>
+
+      <form id="forgotForm">
+        <input type="email" id="forgotEmail" placeholder="Email" required />
+        <button type="submit">Send OTP</button>
+      </form>
+
+      <p id="forgotMsg"></p>
+    </div>
+
+    <!-- Verify OTP & Reset Password Form -->
+    <div id="resetSection" class="hidden">
+      <h3>Reset Password</h3>
+      <p class="hint">Enter the OTP sent to your email.</p>
+
+      <form id="resetForm">
+        <input type="text" id="resetOtp" placeholder="OTP" required />
+        <input type="password" id="resetPassword" placeholder="New Password" required />
+        <button type="submit">Reset Password</button>
+      </form>
+
+      <p id="resetMsg"></p>
+    </div>
+
+    <button class="secondary-btn hidden" id="backBtn" onclick="backToLogin()">
+      Back to Login
+    </button>
   </div>
 
   <script>
     const API = "/auth";
-    const loginForm = document.getElementById("loginForm");
-    const msg = document.getElementById("msg");
 
-    loginForm.onsubmit = async (e) => {
+    // ===== LOGIN SECTION =====
+    document.getElementById("loginForm").onsubmit = async (e) => {
       e.preventDefault();
 
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      const msg = document.getElementById("loginMsg");
 
       try {
         const res = await fetch(API + "/login", {
@@ -125,14 +197,105 @@
         if (res.ok) {
           localStorage.setItem("accessToken", data.accessToken);
           localStorage.setItem("refreshToken", data.refreshToken);
-          msg.textContent = "Login success";
+          msg.textContent = "✓ Login successful";
+          msg.style.color = "#10b981";
         } else {
           msg.textContent = data.error || "Login failed";
+          msg.style.color = "#ef4444";
         }
       } catch {
         msg.textContent = "Could not connect to server";
+        msg.style.color = "#ef4444";
       }
     };
+
+    // ===== FORGOT PASSWORD SECTION =====
+    function showForgotPassword() {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("forgotSection").classList.remove("hidden");
+      document.getElementById("backBtn").classList.remove("hidden");
+    }
+
+    document.getElementById("forgotForm").onsubmit = async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("forgotEmail").value;
+      const msg = document.getElementById("forgotMsg");
+
+      try {
+        const res = await fetch(API + "/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = "✓ OTP sent to your email";
+          msg.style.color = "#10b981";
+          document.getElementById("forgotForm").style.display = "none";
+          setTimeout(() => {
+            document.getElementById("forgotSection").classList.add("hidden");
+            document.getElementById("resetSection").classList.remove("hidden");
+          }, 2000);
+        } else {
+          msg.textContent = data.error || "Failed to send OTP";
+          msg.style.color = "#ef4444";
+        }
+      } catch {
+        msg.textContent = "Could not connect to server";
+        msg.style.color = "#ef4444";
+      }
+    };
+
+    // ===== RESET PASSWORD SECTION =====
+    document.getElementById("resetForm").onsubmit = async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("forgotEmail").value;
+      const otp = document.getElementById("resetOtp").value;
+      const newPassword = document.getElementById("resetPassword").value;
+      const msg = document.getElementById("resetMsg");
+
+      try {
+        const res = await fetch(API + "/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp, newPassword }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = "✓ Password reset successfully. Redirecting...";
+          msg.style.color = "#10b981";
+          setTimeout(() => {
+            backToLogin();
+            document.getElementById("loginForm").reset();
+          }, 2000);
+        } else {
+          msg.textContent = data.error || "Password reset failed";
+          msg.style.color = "#ef4444";
+        }
+      } catch {
+        msg.textContent = "Could not connect to server";
+        msg.style.color = "#ef4444";
+      }
+    };
+
+    // ===== UTILITIES =====
+    function backToLogin() {
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById("forgotSection").classList.add("hidden");
+      document.getElementById("resetSection").classList.add("hidden");
+      document.getElementById("backBtn").classList.add("hidden");
+      document.getElementById("forgotForm").style.display = "block";
+
+      document.getElementById("loginMsg").textContent = "";
+      document.getElementById("forgotMsg").textContent = "";
+      document.getElementById("resetMsg").textContent = "";
+    }
   </script>
 </body>
 </html>
