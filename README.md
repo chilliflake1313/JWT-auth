@@ -1,4 +1,24 @@
-# JWT Auth Boilerplate (TypeScript + Express)
+# JWT Auth Boilerplate (OTP + Refresh Tokens + Email Flow)
+
+Implements JWT authentication with access/refresh tokens, OTP-based email verification, and password recovery flow.
+
+This is a minimal, production-style authentication starter built with Node.js, Express, and TypeScript.
+
+Designed for:
+- developers building SaaS apps
+- students learning auth systems
+- projects needing ready-to-use JWT + OTP flow
+
+⚠️ This project is a starter template.
+
+It is NOT production-ready out of the box.
+
+⚠️ Email functionality is limited in development mode and will not send OTPs to real email providers like Gmail or Proton Mail without domain verification.
+
+Why this project exists:
+
+Authentication is one of the most repeated backend problems.
+This boilerplate removes the need to build it from scratch.
 
 A reusable authentication boilerplate with:
 - JWT access and refresh tokens
@@ -9,6 +29,20 @@ A reusable authentication boilerplate with:
 - Minimal frontend pages for quick testing
 
 This project is designed so anyone can clone it and adapt it to their own app.
+
+## Auth Flow
+
+Signup:
+email -> OTP -> verify -> account created -> tokens issued
+
+Login:
+email + password -> tokens issued
+
+Refresh:
+refresh token -> validated -> new access token
+
+Password Reset:
+email -> OTP -> verify -> password updated
 
 ## Features
 
@@ -180,6 +214,34 @@ Request:
 - Use HTTPS in production
 - Rotate JWT secrets periodically
 - Add proper logging/monitoring
+
+## Limitations
+
+- uses in-memory storage
+- OTP is not hashed
+- no distributed session handling
+
+### Email Delivery Limitation
+
+This project uses SMTP (Mailtrap) or Resend in test mode.
+
+In development:
+- Emails are NOT delivered to real user inboxes
+- Mailtrap captures emails in a sandbox inbox
+- Resend test mode only allows sending to the registered account email
+
+Because of this:
+- Gmail, Proton Mail, Outlook, etc. will NOT receive OTP emails
+- Real user onboarding cannot work without proper email setup
+
+To enable real email delivery:
+1. Purchase or use a real domain (for example: yourapp.com)
+2. Verify domain in your email provider (Resend / SendGrid / SES)
+3. Configure DNS records (SPF, DKIM)
+4. Use a valid sender email (for example: no-reply@yourapp.com)
+
+Without domain verification:
+- Email delivery will fail or be restricted
 
 ## Troubleshooting
 
