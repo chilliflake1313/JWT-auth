@@ -1,16 +1,27 @@
 {
   "name": "jwt-auth",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "JWT auth boilerplate with email OTP signup and forgot-password flow",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests configured\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chilliflake1313/JWT-auth.git"
   },
-  "keywords": [],
+  "keywords": [
+    "jwt",
+    "auth",
+    "express",
+    "typescript",
+    "otp",
+    "boilerplate"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
