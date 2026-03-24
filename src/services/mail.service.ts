@@ -1,19 +1,34 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.MAILTRAP_HOST || "smtp.mailtrap.io",
-  port: Number(process.env.MAILTRAP_PORT || 2525),
-  auth: {
-    user: process.env.MAILTRAP_USER || "",
-    pass: process.env.MAILTRAP_PASS || "",
-  },
-});
+function createTransporter() {
+  const mailtrapUser = process.env.MAILTRAP_USER?.trim();
+  const mailtrapPass = process.env.MAILTRAP_PASS?.trim();
+
+  if (!mailtrapUser || !mailtrapPass) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: process.env.MAILTRAP_HOST || "smtp.mailtrap.io",
+    port: Number(process.env.MAILTRAP_PORT || 2525),
+    auth: {
+      user: mailtrapUser,
+      pass: mailtrapPass,
+    },
+  });
+}
 
 export const sendOtpEmail = async (
   email: string,
   otp: string,
   subject: string = "Email Verification"
 ) => {
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.error("Mailtrap credentials are missing. Set MAILTRAP_USER and MAILTRAP_PASS in .env.");
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.MAILTRAP_FROM || "noreply@jwtauth.local",
     to: email,
@@ -42,10 +57,16 @@ export const sendOtpEmail = async (
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.messageId);
+    console.log("Email sent successfully:", info.messageId);
     return true;
   } catch (error) {
-    console.error("Failed to send email:", error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("Mailtrap error:", {
+      error: errorMsg,
+      user: process.env.MAILTRAP_USER,
+      host: process.env.MAILTRAP_HOST,
+      port: process.env.MAILTRAP_PORT,
+    });
     return false;
   }
 };
